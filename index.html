@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <!-- For once an html page without a proper body! This is purely for OBS because webpage easy -->
+        <script>
+            // Current url parameters: server (required), ttduser, lang, voice, speed, pitch
+
+            // Parse the URL to obtain the settings for the page
+            const settings = new URL(document.URL).searchParams;
+            const lang = settings.get('lang')?.toLowerCase() || 'en-us';
+            const voice = speechSynthesis.getVoices().filter(voice=>{
+                const langConditional = voice.lang.toLowerCase().indexOf(lang) > -1;
+                if(settings.get('voice'))
+                    return langConditional && voice.name.toLowerCase().indexOf(settings.get('voice')) > -1;
+
+                return langConditional;
+            })[0];
+
+            /*Message:
+            {channel, user, text}
+            Redeem:
+            {title, userName, displayName, rewardCost}
+            
+            twitchToDiscord: [d][username~123] message*/
+
+            if(!settings.get("server")) throw new Error("No endpoint specified, to use this module, put the connection to the endpint in the parameters (e.g: https://example.com?server=192.168.1.123 )\n You can also specify language, and other settings. (ttduser, lang, voice, speed, pitch)\n\n Try this page out to get an idea of voices you can use: https://mdn.github.io/dom-examples/web-speech-api/speak-easy-synthesis/")
+
+            const ws = new WebSocket("ws://" + settings.get("server") + ":9001");
+            ws.addEventListener('open', ()=>console.log("Connected to twitchListenerCore"));
+            ws.addEventListener('message', evt=>{
+                // Parse the data from the data, it's either going to be a redeem or a chat message
+                const data = JSON.parse(evt.data);
+                let resStr = '';
+
+                // This is a twitch messsage, if it comes from discord, change the beginning text
+                if(data.text){
+                    if(data.text.indexOf("[d][") == 0){
+                        try{
+                            let discordUser = data.text.substring(data.text.indexOf("[d][") + 4, data.text.indexOf('~'));
+                            if(discordUser === "[d][") discordUser = "somebody"; // This failed to parse the username, put in a generic name instead
+
+                            let lol = false;
+
+                            // ttduser can be used to verify if someone is from discord or not. If someone is trying to fake it, use some tongue & cheek 8)
+                            if(settings.get("ttduser") && data.user != settings.get("ttduser")){
+                                resStr = data.user + ', who tried to be ';
+                                lol = true;
+                            }
+                            resStr += discordUser + " from discord " + (lol? " lol nice try, said " : "") +": " + data.text.substring(data.text.indexOf('] ') + 2);
+                        }
+                        catch(e){
+                            resStr = data.user + ", who failed faked being another discord user, so bad to the point I nearly freaken crashed (lmao), said: "+data.text;
+                        }
+                    }
+
+                    else resStr = data.user + ": " + data.text;
+                }
+
+                // Channel point redeem
+                else if(data.title)
+                    resStr = data.displayName + " redeemed: " + data.title;
+
+                const utterance = new SpeechSynthesisUtterance(resStr);
+                utterance.voice = voice;
+
+                if(settings.get('pitch')) utterance.pitch = settings.get('pitch')*1;
+                if(settings.get('speed')) utterance.rate = settings.get('speed')*1;
+
+                console.log({"message": resStr, data, pitch: utterance.pitch, rate: utterance.rate});
+
+                speechSynthesis.speak(utterance);
+            });
+        </script>
+    </body>
+</html>
