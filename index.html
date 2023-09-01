@@ -26,14 +26,22 @@
             if(!settings.get("server")) throw new Error("No endpoint specified, to use this module, put the connection to the endpint in the parameters (e.g: https://example.com?server=192.168.1.123 )\n You can also specify language, and other settings. (ttduser, lang, voice, speed, pitch)\n\n Try this page out to get an idea of voices you can use: https://mdn.github.io/dom-examples/web-speech-api/speak-easy-synthesis/")
 
             const ws = new WebSocket("ws://" + settings.get("server") + ":9001");
-            ws.addEventListener('open', ()=>console.log("Connected to twitchListenerCore"));
+            ws.addEventListener('open', ()=>{
+                console.log("Connected to twitchListenerCore")
+                ws.send(JSON.stringify(['message', 'redeem']));
+            });
+
             ws.addEventListener('message', evt=>{
                 // Parse the data from the data, it's either going to be a redeem or a chat message
                 const data = JSON.parse(evt.data);
                 let resStr = '';
 
+                if(data.accepted?.length) console.log('Now listening to ', data.accepted);
+                if(data.rejected?.length) console.error('twitchListenerCore rejected these events:', data.rejected);
+
                 // This is a twitch messsage, if it comes from discord, change the beginning text
                 if(data.text){
+                    if("#"+data.user == data.channel) return;
                     if(data.text.indexOf("[d][") == 0){
                         try{
                             let discordUser = data.text.substring(data.text.indexOf("[d][") + 4, data.text.indexOf('~'));
@@ -66,7 +74,7 @@
                 if(settings.get('pitch')) utterance.pitch = settings.get('pitch')*1;
                 if(settings.get('speed')) utterance.rate = settings.get('speed')*1;
 
-                console.log({"message": resStr, data, pitch: utterance.pitch, rate: utterance.rate});
+                console.log({"message": resStr, data, pitch: utterance.pitch, rate: utterance.rate}, data.channel);
 
                 speechSynthesis.speak(utterance);
             });
