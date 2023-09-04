@@ -41,7 +41,7 @@
 
                 // This is a twitch messsage, if it comes from discord, change the beginning text
                 if(data.text){
-                    if("#"+data.user == data.channel) return;
+                    if(data.user == data.channel) return;
                     if(data.text.indexOf("[d][") == 0){
                         try{
                             let discordUser = data.text.substring(data.text.indexOf("[d][") + 4, data.text.indexOf('~'));
