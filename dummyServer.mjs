@@ -10,7 +10,7 @@ listenerCore.on('connection', ws=>{
 });
 
 // Abstract mocks for listenerCore; export them to the node console and run the server in VSCode debug
-const sendText = (text, user = 'islammedmykindle')=>listenerCoreSocket.send(JSON.stringify({ channel:'#islammedmykindle', user, text}));
+const sendText = (text, user = 'islammedmykindle')=>listenerCoreSocket.send(JSON.stringify({ channel:'islammedmykindle', user, text}));
 const sendRedeem = (title, userName = 'islammedmykindle', display)=>listenerCoreSocket.send(JSON.stringify({title, userName, displayName: display || userName, rewardCost: 150}));
 
 export {sendText, sendRedeem};
