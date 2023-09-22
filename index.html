@@ -43,7 +43,9 @@
                 if(data.text){
                     if(data.text.indexOf('!bsr') > -1)
                         resStr = data.user + ' suggested a new song!';
+                    
                     else if(data.user == data.channel || data.text[0] == "!") return;
+
                     if(data.text.indexOf("[d][") == 0){
                         try{
                             let discordUser = data.text.substring(data.text.indexOf("[d][") + 4, data.text.indexOf('~'));
