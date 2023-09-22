@@ -28,7 +28,7 @@
             const ws = new WebSocket("ws://" + settings.get("server") + ":9001");
             ws.addEventListener('open', ()=>{
                 console.log("Connected to twitchListenerCore")
-                ws.send(JSON.stringify(['message', 'redeem']));
+                ws.send(JSON.stringify(['message', 'redeem', 'sub', 'follow']));
             });
 
             ws.addEventListener('message', evt=>{
@@ -41,7 +41,9 @@
 
                 // This is a twitch messsage, if it comes from discord, change the beginning text
                 if(data.text){
-                    if("#"+data.user == data.channel) return;
+                    if(data.text.indexOf('!bsr') > -1)
+                        resStr = data.user + ' suggested a new song!';
+                    else if(data.user == data.channel || data.text[0] == "!") return;
                     if(data.text.indexOf("[d][") == 0){
                         try{
                             let discordUser = data.text.substring(data.text.indexOf("[d][") + 4, data.text.indexOf('~'));
@@ -61,12 +63,17 @@
                         }
                     }
 
-                    else resStr = data.user + ": " + data.text;
+                    else if (!resStr) resStr = data.user + ": " + data.text;
                 }
 
                 // Channel point redeem
-                else if(data.title)
-                    resStr = data.displayName + " redeemed: " + data.title;
+                // TODO: get rid of this spagettigh code because we would rather like to have lasagna
+                else if(data.event == 'redeem')
+                    resStr = data.userDisplayName + " redeemed: " + data.rewardTitle;
+                else if(data.event == 'sub')
+                    resStr = data.userDisplayName + "Subscribed to the channel! You are an absolute legend!";
+                else if(data.event == 'follow')
+                    resStr = data.userDisplayName + "Followed the channel! Thank you!";
 
                 const utterance = new SpeechSynthesisUtterance(resStr);
                 utterance.voice = voice;
