@@ -3,6 +3,17 @@
     <body>
         <!-- For once an html page without a proper body! This is purely for OBS because webpage easy -->
         <script>
+
+            /*Valid Search Parameters:
+
+                voice - a valid voice for the target operating system. Linux has the most voices available from any OS
+                lang - target langauage; default is US
+                server - the server ip or domain, automatically adds the port at the end
+                ttduser - the main user that sends messasges to and from twitchToDiscord
+                pitch - the pitch of the bot, make it high or low (integer)
+                speed - how fast the bot speaks (integer)
+            */
+
             // Current url parameters: server (required), ttduser, lang, voice, speed, pitch
 
             // Parse the URL to obtain the settings for the page
@@ -15,6 +26,9 @@
 
                 return langConditional;
             })[0];
+
+            var prevUser = '';
+            var discordPrevUser = '';
 
             /*Message:
             {channel, user, text}
@@ -41,6 +55,7 @@
 
                 // This is a twitch messsage, if it comes from discord, change the beginning text
                 if(data.text){
+
                     if(data.text.indexOf('!bsr') > -1)
                         resStr = data.user + ' suggested a new song!';
                     
@@ -58,14 +73,21 @@
                                 resStr = data.user + ', who tried to be ';
                                 lol = true;
                             }
-                            resStr += discordUser + " from discord " + (lol? " lol nice try, said " : "") +": " + data.text.substring(data.text.indexOf('] ') + 2);
+                            resStr += (!lol && discordPrevUser == discordUser ? '' : discordUser + " from discord ")  + (lol? " lol nice try, said " : "") +": " + data.text.substring(data.text.indexOf('] ') + 2);
+
+                            discordPrevUser = discordUser;
                         }
                         catch(e){
                             resStr = data.user + ", who failed faked being another discord user, so bad to the point I nearly freaken crashed (lmao), said: "+data.text;
+                            console.error(e);
                         }
                     }
 
-                    else if (!resStr) resStr = data.user + ": " + data.text;
+                    else if (!resStr) {
+                        console.log(prevUser, data.user);
+                        resStr = ( prevUser == data.user ? '' : data.user + ": ") + data.text;
+                        prevUser = data.user;
+                    }
                 }
 
                 // Channel point redeem
