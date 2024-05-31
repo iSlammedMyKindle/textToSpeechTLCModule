@@ -73,7 +73,7 @@
                                 resStr = data.user + ', who tried to be ';
                                 lol = true;
                             }
-                            resStr += (!lol && discordPrevUser == discordUser ? '' : discordUser + " from discord ")  + (lol? " lol nice try, said " : "") +": " + data.text.substring(data.text.indexOf('] ') + 2);
+                            resStr += (!lol && discordPrevUser == discordUser ? '' : (discordUser.replaceAll('_', ' ')) + " from discord ")  + (lol? " lol nice try, said " : "") +": " + data.text.substring(data.text.indexOf('] ') + 2);
 
                             discordPrevUser = discordUser;
                         }
@@ -84,8 +84,7 @@
                     }
 
                     else if (!resStr) {
-                        console.log(prevUser, data.user);
-                        resStr = ( prevUser == data.user ? '' : data.user + ": ") + data.text;
+                        resStr = ( prevUser == data.user ? '' : data.user.replaceAll('_', ' ') + ": ") + data.text;
                         prevUser = data.user;
                     }
                 }
