@@ -39,7 +39,7 @@
 
             if(!settings.get("server")) throw new Error("No endpoint specified, to use this module, put the connection to the endpint in the parameters (e.g: https://example.com?server=192.168.1.123 )\n You can also specify language, and other settings. (ttduser, lang, voice, speed, pitch)\n\n Try this page out to get an idea of voices you can use: https://mdn.github.io/dom-examples/web-speech-api/speak-easy-synthesis/")
 
-            const ws = new WebSocket("ws://" + settings.get("server") + ":9001");
+            const ws = new WebSocket("wss://" + settings.get("server") + ":9001");
             ws.addEventListener('open', ()=>{
                 console.log("Connected to twitchListenerCore")
                 ws.send(JSON.stringify(['message', 'redeem', 'sub', 'follow']));
