@@ -5,7 +5,6 @@
 import { spawn } from "child_process";
 import config from "./config.json";
 
-var prevUser = '';
 var discordPrevUser = '';
 let latestMessage: queueEntry | undefined;
 let speechInProgress = false;
@@ -37,6 +36,7 @@ interface listnerCoreDTO {
 }
 
 interface queueEntry {
+    user: string,
     text: string,
     prev?: queueEntry,
     next?: queueEntry
@@ -59,6 +59,7 @@ ws.addEventListener('message', evt => {
     // Parse the data from the data, it's either going to be a redeem or a chat message
     const data = JSON.parse(evt.data) as listnerCoreDTO;
     let resStr = '';
+    const prevUser = latestMessage?.prev?.user;
 
     if (data.accepted?.length) console.log('Now listening to ', data.accepted);
     if (data.rejected?.length) console.error('twitchListenerCore rejected these events:', data.rejected);
@@ -78,12 +79,12 @@ ws.addEventListener('message', evt => {
 
                 let lol = false;
 
-                // ttduser can be used to verify if someone is from discord or not. If someone is trying to fake it, use some tongue & cheek 8)
+                // ttduser can be used to verify if someone is from discord or not. If someone is trying to fake it, use some tongue & cheek :)
                 if (config.ttduser && data.user != config.ttduser) {
                     resStr = data.user + ', who tried to be ';
                     lol = true;
                 }
-                resStr += (!lol && discordPrevUser == discordUser ? '' : (discordUser.replaceAll('_', ' ')) + " from discord ") + (lol ? " lol nice try, said " : "") + ": " + data.text.substring(data.text.indexOf('] ') + 2);
+                resStr += (!lol && discordPrevUser == discordUser ? '' : (discordUser.replaceAll('_', ' ')) + " from discord: ") + (lol ? " lol nice try, said: " : "") + " " + data.text.substring(data.text.indexOf('] ') + 2);
 
                 discordPrevUser = discordUser;
             }
@@ -95,7 +96,6 @@ ws.addEventListener('message', evt => {
 
         else if (!resStr) {
             resStr = (prevUser == data.user ? '' : data.user.replaceAll('_', ' ') + ": ") + data.text;
-            prevUser = data.user;
         }
     }
 
@@ -118,6 +118,7 @@ ws.addEventListener('message', evt => {
     // Speak me lad!
     const prevMessage = latestMessage
     latestMessage = {
+        user: data.user,
         text: resStr,
         prev: latestMessage
     }
