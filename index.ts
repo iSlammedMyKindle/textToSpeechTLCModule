@@ -139,7 +139,7 @@ async function speak(entry: queueEntry) {
     if (!speechInProgress) speechInProgress = true;
 
     await new Promise((res) => {
-        spawn(config.speech_command.exe, [...config.speech_command.args, entry.text]).on('close', () => {
+        spawn(config.speech_command.exe, [...config.speech_command.args, `"${entry.text.replaceAll('"', '\'')}"`]).on('close', () => {
             res(undefined);
         });
     });
