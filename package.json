@@ -1,5 +1,11 @@
 {
+  "scripts": {
+    "start": "bun --inspect index.ts"
+  },
   "dependencies": {
     "ws": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.0"
   }
 }

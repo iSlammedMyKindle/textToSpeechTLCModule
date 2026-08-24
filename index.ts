@@ -5,9 +5,17 @@
 import { spawn } from "child_process";
 import config from "./config.json";
 
-var discordPrevUser = '';
+var prevAltPlatformUser = '';
 let latestMessage: queueEntry | undefined;
 let speechInProgress = false;
+
+// Aternate platforms: discord, matrix
+const altPlatformReg = /^\[(d|m)\]\[/;
+
+const platforms = {
+  "d": "discord",
+  "m": "matrix"
+}
 
 
 //twitchToDiscord: [d][username~123] message
@@ -72,21 +80,31 @@ ws.addEventListener('message', evt => {
 
         else if (data.user == data.channel || data.text[0] == "!") return;
 
-        if (data.text.indexOf("[d][") == 0) {
-            try {
-                let discordUser = data.text.substring(data.text.indexOf("[d][") + 4, data.text.indexOf('~'));
-                if (discordUser === "[d][") discordUser = "somebody"; // This failed to parse the username, put in a generic name instead
+        // TODO: Parse through emoji and sift them out
+        // [...]
+
+      const altPlatform: RegExpExecArray | null = altPlatformReg.exec(data.text);
+
+        if (altPlatform) {
+          try {
+                // second index, so "[d][" -> "d"
+                // @ts-ignore It's freaking out because we're using any string character to parse a potential type... that's ok! Ideally perhaps a map would work better here
+                const possiblePlatform = platforms[altPlatform[0][1]] || "unknown platform";
+                let altPlatformUser = data.text.substring(altPlatform.index + 4, data.text.indexOf('~'));
+
+                // String would be blank here
+                if (!altPlatformUser) altPlatformUser = "somebody"; // This failed to parse the username, put in a generic name instead
 
                 let lol = false;
 
-                // ttduser can be used to verify if someone is from discord or not. If someone is trying to fake it, use some tongue & cheek :)
+                // ttduser can be used to verify if someone is from an alternate platform or not. If someone is trying to fake it, use some tongue & cheek :)
                 if (config.ttduser && data.user != config.ttduser) {
                     resStr = data.user + ', who tried to be ';
                     lol = true;
                 }
-                resStr += (!lol && discordPrevUser == discordUser ? '' : (discordUser.replaceAll('_', ' ')) + " from discord: ") + (lol ? " lol nice try, said: " : "") + " " + data.text.substring(data.text.indexOf('] ') + 2);
+                resStr += (!lol && prevAltPlatformUser == altPlatformUser ? '' : (altPlatformUser.replaceAll('_', ' ')) + ` from ${possiblePlatform}: `) + (lol ? " lol nice try, said: " : "") + " " + data.text.substring(data.text.indexOf('] ') + 2);
 
-                discordPrevUser = discordUser;
+                prevAltPlatformUser = altPlatformUser;
             }
             catch (e) {
                 resStr = data.user + ", who failed faked being another discord user, so bad to the point I nearly freaken crashed (lmao), said: " + data.text;
