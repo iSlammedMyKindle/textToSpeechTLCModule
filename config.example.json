@@ -1,9 +1,9 @@
 {
-    "server": "wss://exampmle.com",
-    "port": 9001,
-    "ttduser": "irejectedmyboox",
-    "speech_command": {
-        "exe": "espeak",
-        "args": []
-    }
+  "server": "wss://exampmle.com",
+  "port": 9001,
+  "ttduser": "irejectedmyboox",
+  "speech_command": {
+    "exe": "espeak",
+    "args": []
+  }
 }

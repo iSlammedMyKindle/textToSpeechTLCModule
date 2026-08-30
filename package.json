@@ -1,6 +1,7 @@
 {
+  "type": "module",
   "scripts": {
-    "start": "bun --inspect index.ts"
+    "start": "node --inspect index.ts"
   },
   "dependencies": {
     "ws": "^8.13.0"
